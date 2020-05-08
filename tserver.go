@@ -32,13 +32,13 @@ type ServerConfig struct {
 	WriteTimeout time.Duration
 	IdleTimeout  time.Duration
 	StaticDir    string
-	Brokers      sync.Map
 }
 
 type ServerControl struct {
-	Server *http.Server
-	MUX    *http.ServeMux
-	CFG    *ServerConfig
+	Server  *http.Server
+	MUX     *http.ServeMux
+	CFG     *ServerConfig
+	Brokers sync.Map
 }
 
 // Start the http listener as configured
@@ -105,4 +105,21 @@ func GetRequestBody(w http.ResponseWriter, r *http.Request, target *interface{})
 	}
 
 	return nil
+}
+
+// AddBroker adds a broker for later use. The call will return an error
+// if the key already exists.
+func (s *ServerControl) AddBroker(key interface{}, value interface{}) error {
+	if _, ok := s.Brokers.LoadOrStore(key, value); ok {
+		return fmt.Errorf("errDuplicateBroker:A broker with this key:%+v already exists, Please use a different key", key)
+	}
+	return nil
+}
+
+func (s *ServerControl) GetBroker(key interface{}) interface{} {
+	value, ok := s.Brokers.Load(key)
+	if !ok {
+		return fmt.Errorf("errBrokerNotFound: Broker with key %v not found", key)
+	}
+	return value
 }
