@@ -20,6 +20,9 @@ import (
 	"net/http"
 )
 
+// DefaultHandlers provide a file serving handler as configured by the
+// StaticDir property in the server config. The file server will automatically
+// default to {{staticdir}}/index.html on a root request.
 func DefaultHandlers(s *ServerControl) {
 
 	// Hides hidden files on the linux file system
