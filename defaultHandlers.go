@@ -32,6 +32,9 @@ func DefaultHandlers(s *ServerControl) {
 	s.MUX.Handle("/", http.FileServer(fs))
 }
 
+// Respond is a helper function to be used in handler implementations. It takes the writer in question
+// and interprets the appropriate response type and header. If the com parameter is already an []byte simple
+// written following an attemt at type detection. Otherwise the com interface is marshaled to JSON and written.
 func Respond(w http.ResponseWriter, com interface{}) {
 	var bts []byte
 	var err error
