@@ -31,6 +31,7 @@ type ServerConfig struct {
 	WriteTimeout time.Duration
 	IdleTimeout  time.Duration
 	StaticDir    string
+	Brokers      map[string]interface{}
 }
 
 type ServerControl struct {
@@ -80,6 +81,7 @@ func NewServer(cfg *ServerConfig) *ServerControl {
 		ReadTimeout:  cfg.ReadTimeout,
 		WriteTimeout: cfg.WriteTimeout,
 		IdleTimeout:  cfg.IdleTimeout,
+		Brokers:      make(map[string]interface{}),
 	}
 	return &ServerControl{
 		Server: server,
