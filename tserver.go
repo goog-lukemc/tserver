@@ -91,7 +91,7 @@ func NewServer(cfg *ServerConfig) *ServerControl {
 }
 
 // GetRequestBody decode the body of the server to the target type
-func GetRequestBody(w http.ResponseWriter, r *http.Request, target *interface{}) error {
+func GetRequestBody(w http.ResponseWriter, r *http.Request, target interface{}) error {
 	// Check if the the http method is a post request.
 	if r.Method != "POST" {
 		http.Error(w, "errBadHTTPMethod", http.StatusMethodNotAllowed)
