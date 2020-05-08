@@ -99,7 +99,7 @@ func GetRequestBody(w http.ResponseWriter, r *http.Request, target interface{}) 
 	}
 
 	// Decode the http body to a dlp request
-	if err := json.NewDecoder(r.Body).Decode(target); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&target); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return err
 	}
