@@ -16,6 +16,7 @@ package tserver
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -53,4 +54,21 @@ func Respond(w http.ResponseWriter, com interface{}) {
 		log.Fatalf("errHTTPWrite:%s", err)
 	}
 	return
+}
+
+// GetRequestBody decode the body of the server to the target type
+func GetRequestBody(w http.ResponseWriter, r *http.Request, target *interface{}) error {
+	// Check if the the http method is a post request.
+	if r.Method != "POST" {
+		http.Error(w, "errBadHTTPMethod", http.StatusMethodNotAllowed)
+		return fmt.Errorf("errBadHTTPMethod")
+	}
+
+	// Decode the http body to a dlp request
+	if err := json.NewDecoder(r.Body).Decode(target); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return err
+	}
+
+	return nil
 }
