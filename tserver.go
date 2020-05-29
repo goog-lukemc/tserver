@@ -16,8 +16,6 @@ package tserver
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -86,21 +84,4 @@ func NewServer(cfg *ServerConfig) *ServerControl {
 		MUX:    mux,
 		CFG:    cfg,
 	}
-}
-
-// GetRequestBody decode the body of the server to the target type
-func GetRequestBody(w http.ResponseWriter, r *http.Request, target *interface{}) error {
-	// Check if the the http method is a post request.
-	if r.Method != "POST" {
-		http.Error(w, "errBadHTTPMethod", http.StatusMethodNotAllowed)
-		return fmt.Errorf("errBadHTTPMethod")
-	}
-
-	// Decode the http body to a dlp request
-	if err := json.NewDecoder(r.Body).Decode(&target); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return err
-	}
-
-	return nil
 }

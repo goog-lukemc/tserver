@@ -16,6 +16,7 @@ package tserver
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -42,6 +43,9 @@ func DefaultHandlers(s *ServerControl) {
 	})
 }
 
+// Respond is a helper function to be used in handler implementations. It takes the writer in question
+// and interprets the appropriate response type and header. If the com parameter is already an []byte simple
+// written following an attemt at type detection. Otherwise the com interface is marshaled to JSON and written.
 func Respond(w http.ResponseWriter, com interface{}) {
 	var bts []byte
 	var err error
@@ -60,4 +64,21 @@ func Respond(w http.ResponseWriter, com interface{}) {
 		log.Fatalf("errHTTPWrite:%s", err)
 	}
 	return
+}
+
+// GetRequestBody decode the body of the server to the target type
+func GetRequestBody(w http.ResponseWriter, r *http.Request, target interface{}) error {
+	// Check if the the http method is a post request.
+	if r.Method != "POST" {
+		http.Error(w, "errBadHTTPMethod", http.StatusMethodNotAllowed)
+		return fmt.Errorf("errBadHTTPMethod")
+	}
+
+	// Decode the http body to a dlp request
+	if err := json.NewDecoder(r.Body).Decode(target); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return err
+	}
+
+	return nil
 }
