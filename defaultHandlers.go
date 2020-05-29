@@ -16,8 +16,10 @@ package tserver
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"path"
 )
 
 // DefaultHandlers provide a file serving handler as configured by the
@@ -30,6 +32,14 @@ func DefaultHandlers(s *ServerControl) {
 
 	// Local files a served under the /site/ request path by default.
 	s.MUX.Handle("/", http.FileServer(fs))
+
+	// Anything in the app route returns the index.html as will the empty default route
+	// This is to allow a wasm app to handle the request.
+	s.MUX.HandleFunc("/app/", func(w http.ResponseWriter, r *http.Request) {
+		bts, _ := ioutil.ReadFile(path.Join(s.CFG.StaticDir, "index.html"))
+		w.Header().Set("content-type", http.DetectContentType(bts))
+		w.Write(bts)
+	})
 }
 
 func Respond(w http.ResponseWriter, com interface{}) {
