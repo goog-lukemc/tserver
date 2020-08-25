@@ -16,6 +16,7 @@ package tserver
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -84,4 +85,18 @@ func NewServer(cfg *ServerConfig) *ServerControl {
 		MUX:    mux,
 		CFG:    cfg,
 	}
+}
+
+// HTTP is an error helper responding to the caller.
+type HTTPError struct {
+	Code int
+	Msg  string
+}
+
+func (h HTTPError) Error() string {
+	return fmt.Sprintf("tServerErr:%s", h.Msg)
+}
+
+func (h HTTPError) HTTPRespond(w http.ResponseWriter) {
+	http.Error(w, h.Error(), h.Code)
 }

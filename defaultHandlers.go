@@ -47,12 +47,23 @@ func DefaultHandlers(s *ServerControl) {
 // and interprets the appropriate response type and header. If the com parameter is already an []byte simple
 // written following an attemt at type detection. Otherwise the com interface is marshaled to JSON and written.
 func Respond(w http.ResponseWriter, com interface{}) {
+	// Handle an error
+
+	if err, ok := com.(HTTPError); ok {
+		err.HTTPRespond(w)
+		return
+	}
+
 	var bts []byte
 	var err error
+
 	if _, ok := com.([]byte); !ok {
 		bts, err = json.Marshal(com)
 		if err != nil {
-			log.Fatalf("errMarshal:%s", err)
+			Respond(w, HTTPError{
+				Code: http.StatusInternalServerError,
+				Msg:  fmt.Sprintf("%s - %s", http.ErrAbortHandler, err),
+			})
 		}
 	} else {
 		bts = com.([]byte)
@@ -61,24 +72,30 @@ func Respond(w http.ResponseWriter, com interface{}) {
 	contentType := http.DetectContentType(bts)
 	w.Header().Set("content-type", contentType)
 	if _, err := w.Write(bts); err != nil {
-		log.Fatalf("errHTTPWrite:%s", err)
+		log.Fatalf("errHTTPWriteFatal:%s", err)
 	}
 	return
 }
 
 // GetRequestBody decode the body of the server to the target type
-func GetRequestBody(w http.ResponseWriter, r *http.Request, target interface{}) error {
+func GetRequestBody(w http.ResponseWriter, r *http.Request, target interface{}) {
 	// Check if the the http method is a post request.
 	if r.Method != "POST" {
-		http.Error(w, "errBadHTTPMethod", http.StatusMethodNotAllowed)
-		return fmt.Errorf("errBadHTTPMethod")
+		Respond(w, HTTPError{
+			Code: http.StatusMethodNotAllowed,
+			Msg:  fmt.Sprintf("%s", http.ErrNotSupported),
+		})
+		return
 	}
 
 	// Decode the http body to a dlp request
 	if err := json.NewDecoder(r.Body).Decode(target); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return err
+		Respond(w, HTTPError{
+			Code: http.StatusBadRequest,
+			Msg:  fmt.Sprintf("%s - %s", http.ErrBodyNotAllowed, err),
+		})
+		return
 	}
 
-	return nil
+	return
 }
