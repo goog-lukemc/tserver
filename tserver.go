@@ -98,5 +98,5 @@ func (h HTTPError) Error() string {
 }
 
 func (h HTTPError) HTTPRespond(w http.ResponseWriter) {
-	http.Error(w, h.Error(), h.Code)
+	http.Error(w, h.Error()+h.Msg, h.Code)
 }
